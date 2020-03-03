@@ -13,16 +13,17 @@ class Doorman():
 
     def __init__(self, csv_file):
         if os.path.exists(csv_file):
-            self.data = pd.read_csv(csv_file, index_col='Key')
+            self.data = pd.read_csv(csv_file)
         else:
-            self.data = pd.DataFrame([], columns=['Nombre','Apellido','Key','Password'], index_col='Key')
+            self.data = pd.DataFrame([], columns=['Nombre','Apellido','Key','Password'])
         self.reader = SimpleMFRC522()
 
     def read_card(self):
         try:
             key, password = self.reader.read()
-            if key in self.data.Key.values:
-                current_password = self.data[self.data['Key'] == key]['Passowrd'].values[0]
+            password = password.strip()
+            if key in self.data['Key'].values:
+                current_password = self.data[self.data['Key'] == key]['Password'].values[0]
                 if password == current_password:
                     self._update_password(key)
                     self._open_door()
@@ -49,7 +50,8 @@ class Doorman():
         self.reader.write(new_password)
 
         # Update password in CSV
-        self.data.loc[key].password = new_password
+        self.data.loc[self.data.Key == key, 'Password'] = new_password
+
 
 
 if __name__ == "__main__":
